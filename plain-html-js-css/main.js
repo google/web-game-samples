@@ -1,12 +1,12 @@
 /**
  * Copyright 2023 Google LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     https://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,35 +19,10 @@
 // ==================================================
 
 /**
- * Check if the game is in an <iframe>.
- * @returns {boolean} True if running in an <iframe>.
- */
-function checkIsFramed() {
-  try {
-    return window.self !== window.top;
-  } catch (e) {
-    return true;
-  }
-}
-
-/**
- * Check if the game is running as a Playable.
- * @returns {boolean} True if in an <iframe> with YouTube Playables SDK loaded.
- */
-function checkIfPlayable() {
-  const isFramed = checkIsFramed();
-
-  // Check if the YouTube Playables SDK is loaded.
-  const isPlayablesSDKLoaded = typeof ytgame !== 'undefined';
-
-  // Framed + SDK = running as a YouTube Playable.
-  return isFramed && isPlayablesSDKLoaded;
-}
-/**
  * If the game is running as a YouTube Playable.
  * @type {boolean}
  */
-const isPlayable = checkIfPlayable();
+const inPlayablesEnv = (typeof ytgame !== 'undefined' && ytgame.IN_PLAYABLES_ENV);
 
 /**
  * Holds the save data.
@@ -57,7 +32,7 @@ let playableSave;
 
 /**
  * Holds the current counter.
- * 
+ *
  * @type {number}
  */
 let counter = -1;
@@ -72,7 +47,7 @@ function onResume() {
 
 /**
  * Initialize the parts of the game relevant to YouTube Playables.
- * 
+ *
  * Separating this functionality enables testing both as a plain web game and
  * as a YouTube Playable.
  */
@@ -133,7 +108,7 @@ async function initAsPlayable() {
  * Save the current user data to YouTube.
  */
 function saveData() {
-  if (isPlayable) {
+  if (inPlayablesEnv) {
     ytgame.game.saveData(JSON.stringify(playableSave)).then(() => {
       // Handle data save success.
     }, (e) => {
@@ -147,12 +122,12 @@ function saveData() {
 
 /**
  * Handle a new score.
- * 
+ *
  * This could display it, but in this case, it is just sent to YouTube.
- * @param {number} newScore 
+ * @param {number} newScore
  */
 function sendScore(newScore) {
-  if (isPlayable) {
+  if (inPlayablesEnv) {
     ytgame.engagement.sendScore({ value: newScore });
   }
 }
@@ -169,13 +144,13 @@ let audioSource;
 let audioCtx;
 /**
  * Whether audio is currently allowed to play.
- * 
+ *
  * @type {boolean}
  */
 let audioEnabled = true;
 /**
  * Whether audio is currently playing.
- * 
+ *
  * @type {boolean}
  */
 let audioPlaying = false;
@@ -250,14 +225,14 @@ spiral.src = 'spiral.svg';
 
 /**
  * Holds the requestAnimationFrame return value.
- * 
+ *
  * @type {number}
  */
 let rafID = 0;
 
 /**
  * If animation is stopped.
- * 
+ *
  * @type {boolean}
  */
 let stopped = true;
@@ -274,7 +249,7 @@ let can;
 let ctx;
 
 function firstStartAnimation() {
-  if (isPlayable) {
+  if (inPlayablesEnv) {
     // Send first frame ready now that we've started to draw.
     ytgame.game.firstFrameReady();
 
@@ -346,14 +321,14 @@ function runAnimation() {
 
 /**
  * Holds references to buttons being used.
- * 
+ *
  * @type {Object}
  */
 const buttons = {};
 
 /**
  * Create any buttons.
- * 
+ *
  * The game only has one button, yet it is a useful abstraction.
  */
 function createButtons() {
@@ -362,7 +337,7 @@ function createButtons() {
 
 /**
  * Draw any buttons.
- * 
+ *
  * The game only has one button, yet it is a useful abstraction.
  */
 function drawButtons() {
@@ -384,7 +359,7 @@ function drawButtons() {
 
 /**
  * Draw the counter.
- * 
+ *
  * Similar to a high score. Only draws if the counter has been loaded.
  */
 function drawCounter() {
@@ -407,7 +382,7 @@ function drawCounter() {
 
 /**
  * Handles the first click/tap event on the canvas.
- * 
+ *
  * Media (audio, video) will not autoplay, so listening for first click.
  * This handler removes itself after it is called.
  */
@@ -420,7 +395,7 @@ function firstClickHandler() {
 
 /**
  * Add interaction handling to interactive elements.
- * 
+ *
  * The game only has one button, yet it is a useful abstraction.
  */
 function addInteractionHandling() {
@@ -458,7 +433,7 @@ function addInteractionHandling() {
 
 /**
  * Initialize the game.
- * 
+ *
  * Sets up animation, interaction, audio, and Playable integrations.
  * Must be run after the DOM is loaded.
  */
@@ -471,14 +446,14 @@ async function init() {
   createButtons();
   firstStartAnimation();
 
-  if (isPlayable) {
+  if (inPlayablesEnv) {
     await initAsPlayable();
   } else {
     playableSave = {};
     counter = 0;
   }
   await initAudio();
-  
+
   // This call will only have an effect if audio is enabled.
   can.addEventListener('click', firstClickHandler, false);
   buttons.primaryButton.text = 'Press!';
