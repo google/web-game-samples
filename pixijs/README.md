@@ -67,8 +67,7 @@ modified in response to a pause in game execution.
 ### Playables Lifecycle Management
 
 `firstFrameReady` and `gameReady` are called inside `main.ts`. `onPause` and
-`onResume` can be found inside [save.ts](src/gamestate/save.ts). More
-information can be found on the [devsite](https://developers.google.com/youtube/gaming/playables/certification/sdk).
+`onResume` can be found inside [save.ts](src/gamestate/save.ts). More information can be found on the [developer website](https://developers.google.com/youtube/gaming/playables/).
 
 ## Install
 
