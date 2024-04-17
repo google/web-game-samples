@@ -2,12 +2,13 @@ import { Application, Sprite } from "pixi.js";
 
 import FontFaceObserver from "fontfaceobserver";
 import { assetManager } from "./core/assets/assetManager";
-import { Sound } from "@pixi/sound";
 import { loadGameState } from "./gamestate/save";
 
 async function main() {
-  const app = new Application({
-    view: document.querySelector("#app") as HTMLCanvasElement,
+  // Create a new PixiJS Application, sized to the whole page.
+  const app = new Application();
+  await app.init({
+    canvas: document.querySelector("#app") as HTMLCanvasElement,
     autoDensity: true,
     resizeTo: window,
     powerPreference: "high-performance",
@@ -23,7 +24,7 @@ async function main() {
   ytgame.game.gameReady();
 
   // Play music, for fun.
-  const backgroundSound = Sound.from("/assets/sounds/moonlight.mp3");
+  const backgroundSound = assetManager.load("/assets/sounds/moonlight.mp3");
   backgroundSound.play();
 }
 

@@ -17,13 +17,16 @@
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.8.3",
+    "sharp": "^0.33.3",
+    "svgo": "^3.2.0",
     "typescript": "^4.9.4",
-    "vite": "^4.0.4"
+    "vite": "^4.0.4",
+    "vite-plugin-image-optimizer": "^1.1.7"
   },
   "dependencies": {
-    "@pixi/sound": "^5.2.0",
+    "@pixi/sound": "^6.0.0",
     "fontfaceobserver": "^2.3.0",
     "immer": "^10.0.3",
-    "pixi.js": "^7.2.4"
+    "pixi.js": "^8.1.0"
   }
 }

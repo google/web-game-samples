@@ -1,4 +1,5 @@
 import { defineConfig, Plugin } from "vite";
+import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import fs from "fs";
 import path from "path";
 
@@ -56,7 +57,7 @@ export default defineConfig({
     sourcemap: true,
     assetsInlineLimit: 0,
   },
-  plugins: [replacePlugin()],
+  plugins: [replacePlugin(), ViteImageOptimizer({})],
   server: {
     port: 3000,
     host: true,
