@@ -1,4 +1,5 @@
 import { Assets } from "pixi.js";
+import "@pixi/sound";
 
 class AssetManager {
   assetPaths: string[];
@@ -13,14 +14,21 @@ class AssetManager {
   // Imports all files inside /public folder.
   // Intentionally does not bundle any files into the JS bundle.
   async importAssetFiles() {
-    const url = window.location.href.endsWith("/")
-      ? window.location.href.slice(0, -1)
-      : window.location.href;
+    const basePath = window.location.href
+      .replace("/index.html", "/")
+      .split(/[?#]/)[0];
+    const url = basePath.endsWith("/") ? basePath.slice(0, -1) : basePath;
+    const allImportPromises = [] as Promise<void>[];
 
     for (const asset of this.assetPaths) {
-      Assets.add(asset, url + asset);
-      this.assets[asset] = await Assets.load(asset);
+      Assets.add({ alias: asset, src: url + asset });
+      allImportPromises.push(
+        Assets.load(asset).then((val: unknown) => {
+          this.assets[asset] = val;
+        })
+      );
     }
+    await Promise.all(allImportPromises);
     this.finished = true;
   }
 
