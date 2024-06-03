@@ -163,7 +163,7 @@ declare namespace ytgame.system {
    *
    */
   export function onAudioEnabledChange(
-    callback: (isAudioEnabled: boolean) => void
+    callback: (isAudioEnabled: boolean) => void,
   ): () => void;
 
   /**

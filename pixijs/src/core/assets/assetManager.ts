@@ -25,7 +25,7 @@ class AssetManager {
       allImportPromises.push(
         Assets.load(asset).then((val: unknown) => {
           this.assets[asset] = val;
-        })
+        }),
       );
     }
     await Promise.all(allImportPromises);
