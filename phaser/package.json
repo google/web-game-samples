@@ -1,0 +1,26 @@
+{
+    "name": "template-youtube-playables",
+    "description": "A Phaser 3 template for creating YouTube Playables.",
+    "version": "1.0.0",
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/phaserjs/template-youtube-playables.git"
+    },
+    "author": "Phaser Studio <support@phaser.io> (https://phaser.io/)",
+    "license": "MIT",
+    "licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
+    "bugs": {
+        "url": "https://github.com/phaserjs/template-youtube-playables/issues"
+    },
+    "homepage": "https://github.com/phaserjs/template-youtube-playables#readme",
+    "scripts": {
+        "dev": "vite --config vite/config.dev.mjs",
+        "build": "vite build --config vite/config.prod.mjs"
+    },
+    "devDependencies": {
+        "phaser": "^3.86.0",
+        "terser": "^5.34.1",
+        "vite": "^5.4.8"
+    }
+}
