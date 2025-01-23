@@ -42,13 +42,13 @@ before utilizing the font.
 The [sound manager](src/core/sounds/soundManager.ts) handles sound muting/unmuting
 from the SDK, as well as pausing/resuming audio on app backgrounding/foregrounding.
 
-A singleon `soundManager` is provided but usually does not
+A singleton `soundManager` is provided but usually does not
 need to be used by anything other than the `main.ts` file.
 
 ### Game State/Save Management
 
 A sample save implementation is provided inside [save.ts](src/gamestate/save.ts).
-It uses Immer to surgically modify state and avoid unecessary updates.
+It uses Immer to surgically modify state and avoid unnecessary updates.
 
 Inside [main.ts](src/main.ts), if a previous save exists, it is loaded via the
 Playables SDK and overwrites any initial game state.
