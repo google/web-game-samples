@@ -42,18 +42,18 @@ export const YouTubePlayables = {
         if (document.readyState === 'complete' || document.readyState === 'interactive')
         {
             callback();
-    
+
             return;
         }
-    
+
         const check = () =>
         {
             document.removeEventListener('DOMContentLoaded', check, true);
             window.removeEventListener('load', check, true);
-    
+
             callback();
         };
-    
+
         if (!document.body)
         {
             window.setTimeout(check, 20);
@@ -64,7 +64,7 @@ export const YouTubePlayables = {
             window.addEventListener('load', check, true);
         }
     },
-    
+
     firstFrameReady: function ()
     {
         if (!this.isLoaded() || this._firstFrameReady)
@@ -175,9 +175,9 @@ export const YouTubePlayables = {
                         catch (error)
                         {
                             console.error('Failed to parse loadData');
-        
+
                             this.logError();
-        
+
                             reject(error);
                         }
                     }
@@ -189,7 +189,7 @@ export const YouTubePlayables = {
                 }).catch(error => {
 
                     console.error('Failed to loadData');
-        
+
                     if (error.errorType)
                     {
                         this.handleError(error.errorType);
@@ -198,14 +198,14 @@ export const YouTubePlayables = {
                     this.logError();
 
                     reject(error);
-            
+
                 });
             }
             else
             {
                 resolve();
             }
-            
+
         });
     },
 
@@ -216,7 +216,7 @@ export const YouTubePlayables = {
 
         //  Find lone low surrogates (DC00-DFFF) not preceded by a high surrogate (D800-DBFF)
         const loneLowSurrogate = /(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
-        
+
         return loneHighSurrogate.test(str) || loneLowSurrogate.test(str);
     },
 
@@ -244,7 +244,7 @@ export const YouTubePlayables = {
                 }).catch(error => {
 
                     console.error('Failed to saveData');
-        
+
                     if (error.errorType)
                     {
                         this.handleError(error.errorType);
@@ -253,14 +253,14 @@ export const YouTubePlayables = {
                     this.logError();
 
                     reject(error);
-            
+
                 });
             }
             else
             {
                 resolve();
             }
-            
+
         });
     },
 
@@ -268,7 +268,7 @@ export const YouTubePlayables = {
     {
         return this._data;
     },
-    
+
     loadLanguage: function ()
     {
         return new Promise((resolve, reject) =>
@@ -284,11 +284,11 @@ export const YouTubePlayables = {
                 }).catch(error => {
 
                     console.error('Failed to getLanguage');
-        
+
                     this.logError();
 
                     reject(error);
-        
+
                 });
             }
             else
@@ -297,7 +297,7 @@ export const YouTubePlayables = {
             }
         });
     },
-    
+
     getLanguage: function ()
     {
         return this._language;
@@ -341,7 +341,7 @@ export const YouTubePlayables = {
     handleError: function (errorType)
     {
         let type = null;
-    
+
         switch (errorType)
         {
             case SDKErrorType.UNKNOWN:
@@ -363,31 +363,49 @@ export const YouTubePlayables = {
             default:
                 console.error('Unhandled error type.');
         }
-    
+
         return type;
     },
-    
+
     withTimeout: function (promise, timeout = 2000)
     {
-        return new Promise((resolve, reject) => 
+        return new Promise((resolve, reject) =>
         {
-            const timer = setTimeout(() => 
+            const timer = setTimeout(() =>
             {
                 reject(new Error('Operation timed out'));
             }, timeout);
 
             promise
-                .then(value => 
+                .then(value =>
                 {
                     clearTimeout(timer);
                     resolve(value);
                 })
-                .catch(err => 
+                .catch(err =>
                 {
                     clearTimeout(timer);
                     reject(err);
                 });
         });
+    },
+
+    requestInterstitialAd: function()
+    {
+        if (this.isReady())
+        {
+            try
+            {
+                this._ytgameRef?.ads.requestInterstitialAd();
+            }
+            catch (error)
+            {
+                if (error.errorType)
+                {
+                    this.handleError(error.errorType);
+                }
+            }
+        }
     }
 
 };
