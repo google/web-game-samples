@@ -333,6 +333,7 @@ const buttons = {};
  */
 function createButtons() {
   buttons.primaryButton = { isPressed: false, shape: null, text: 'Loading...' };
+  buttons.secondaryButton = { isPressed: false, shape: null, text: 'Loading...' };
 }
 
 /**
@@ -355,6 +356,21 @@ function drawButtons() {
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#000';
   ctx.fillText(buttons.primaryButton.text, can.width / 2, can.height - 80);
+
+  if (buttons.secondaryButton.isPressed) {
+    ctx.fillStyle = '#6089bf';
+  } else {
+    ctx.fillStyle = '#2975d9';
+  }
+  buttons.secondaryButton.shape = new Path2D();
+  buttons.secondaryButton.shape.rect(can.width / 2 - 50, can.height - 50, 100, 40);
+  ctx.fill(buttons.secondaryButton.shape);
+
+  ctx.font = '20px Georgia';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#000';
+  ctx.fillText(buttons.secondaryButton.text, can.width / 2, can.height - 30);
 }
 
 /**
@@ -401,11 +417,15 @@ function firstClickHandler() {
 function addInteractionHandling() {
   can.addEventListener('pointerdown', () => {
     buttons.primaryButton.wasPressed = buttons.primaryButton.isPressed = ctx.isPointInPath(buttons.primaryButton.shape, event.offsetX, event.offsetY);
+    buttons.secondaryButton.wasPressed = buttons.secondaryButton.isPressed = ctx.isPointInPath(buttons.secondaryButton.shape, event.offsetX, event.offsetY);
   }, false);
 
   can.addEventListener('pointermove', () => {
     if (buttons.primaryButton.wasPressed) {
       buttons.primaryButton.isPressed = ctx.isPointInPath(buttons.primaryButton.shape, event.offsetX, event.offsetY);
+    }
+    if (buttons.secondaryButton.wasPressed) {
+      buttons.secondaryButton.isPressed = ctx.isPointInPath(buttons.secondaryButton.shape, event.offsetX, event.offsetY);
     }
   }, false);
 
@@ -419,6 +439,13 @@ function addInteractionHandling() {
     }
 
     buttons.primaryButton.wasPressed = buttons.primaryButton.isPressed = false;
+
+    buttons.secondaryButton.isPressed = ctx.isPointInPath(buttons.secondaryButton.shape, event.offsetX, event.offsetY);
+    if (buttons.secondaryButton.wasPressed && buttons.secondaryButton.isPressed) {
+      ytgame.ads.requestInterstitialAd();
+    }
+
+    buttons.secondaryButton.wasPressed = buttons.secondaryButton.isPressed = false;
 
   }, false);
 }
@@ -457,6 +484,7 @@ async function init() {
   // This call will only have an effect if audio is enabled.
   can.addEventListener('click', firstClickHandler, false);
   buttons.primaryButton.text = 'Press!';
+  buttons.secondaryButton.text = 'Ads!';
   addInteractionHandling();
 }
 
