@@ -17,6 +17,10 @@ async function main() {
 
   // Example of loading an imported asset.
   const cube = new Sprite(assetManager.load("/assets/sprites/cube.png"));
+  cube.eventMode = 'static';
+  cube.on('pointerup', (_) => {
+      ytgame.ads.requestInterstitialAd();
+  });
   app.stage.addChild(cube);
 
   // Do other setup work here, if needed. Then,
