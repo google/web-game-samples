@@ -23,6 +23,7 @@
  * @type {boolean}
  */
 const inPlayablesEnv = (typeof ytgame !== 'undefined' && ytgame.IN_PLAYABLES_ENV);
+console.debug(`inPlayablesEnv: [${inPlayablesEnv}]`);
 
 /**
  * Holds the save data.
@@ -129,6 +130,24 @@ function saveData() {
 function sendScore(newScore) {
   if (inPlayablesEnv) {
     ytgame.engagement.sendScore({ value: newScore });
+  }
+}
+
+/**
+ * Request an interstitial ad to be shown.
+ */
+function requestInterstitialAd() {
+  console.debug(`requestInterstitialAd()`);
+  if (inPlayablesEnv) {
+    ytgame.ads.requestInterstitialAd().then(() => {
+      // Request succeeded (no guarantee an ad was shown).
+      // Handle this case as needed.
+      // Proceed with the game.
+    }, (e) => {
+      // Handle ad request failure.
+      console.warn(e);
+      // Proceed with the game.
+    });
   }
 }
 
@@ -329,7 +348,7 @@ const buttons = {};
 /**
  * Create any buttons.
  *
- * The game only has one button, yet it is a useful abstraction.
+ * The game only has basic buttons, yet it is a useful abstraction.
  */
 function createButtons() {
   buttons.primaryButton = { isPressed: false, shape: null, text: 'Loading...' };
@@ -339,7 +358,7 @@ function createButtons() {
 /**
  * Draw any buttons.
  *
- * The game only has one button, yet it is a useful abstraction.
+ * The game only has basic buttons, yet it is a useful abstraction.
  */
 function drawButtons() {
   if (buttons.primaryButton.isPressed) {
@@ -363,7 +382,7 @@ function drawButtons() {
     ctx.fillStyle = '#2975d9';
   }
   buttons.secondaryButton.shape = new Path2D();
-  buttons.secondaryButton.shape.rect(can.width / 2 - 50, can.height - 50, 100, 40);
+  buttons.secondaryButton.shape.rect(can.width / 2 - 75, can.height - 50, 150, 40);
   ctx.fill(buttons.secondaryButton.shape);
 
   ctx.font = '20px Georgia';
@@ -412,7 +431,7 @@ function firstClickHandler() {
 /**
  * Add interaction handling to interactive elements.
  *
- * The game only has one button, yet it is a useful abstraction.
+ * The game only has basic buttons, yet it is a useful abstraction.
  */
 function addInteractionHandling() {
   can.addEventListener('pointerdown', () => {
@@ -442,7 +461,7 @@ function addInteractionHandling() {
 
     buttons.secondaryButton.isPressed = ctx.isPointInPath(buttons.secondaryButton.shape, event.offsetX, event.offsetY);
     if (buttons.secondaryButton.wasPressed && buttons.secondaryButton.isPressed) {
-      ytgame.ads.requestInterstitialAd();
+      requestInterstitialAd();
     }
 
     buttons.secondaryButton.wasPressed = buttons.secondaryButton.isPressed = false;
@@ -484,7 +503,7 @@ async function init() {
   // This call will only have an effect if audio is enabled.
   can.addEventListener('click', firstClickHandler, false);
   buttons.primaryButton.text = 'Press!';
-  buttons.secondaryButton.text = 'Ads!';
+  buttons.secondaryButton.text = 'Interstitial ad';
   addInteractionHandling();
 }
 
