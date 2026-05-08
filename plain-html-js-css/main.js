@@ -157,7 +157,9 @@ function requestInterstitialAd() {
 function requestRewardedAd() {
   console.debug(`requestRewardedAd()`);
   if (inPlayablesEnv) {
-    ytgame.ads.requestRewardedAd("21403813-2e22-4316-a8b2-7d4f52a6f6fb").then((isRewardEarned) => {
+    // rewardId is an identifier which uniquely identifies the claimable reward type.
+    // For example, you could make the ID readable or a UUID. You can include this as a hard-coded ID in your game code for the specific reward.
+    ytgame.ads.requestRewardedAd(/*rewardId*/ "21403813-2e22-4316-a8b2-7d4f52a6f6fb").then((isRewardEarned) => {
       // Request succeeded (no guarantee an ad was shown).
       // Handle reward being earned or not.
       console.debug(`Reward earned: ${isRewardEarned}`);
