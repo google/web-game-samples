@@ -151,6 +151,25 @@ function requestInterstitialAd() {
   }
 }
 
+/**
+ * Request a rewarded ad to be shown.
+ */
+function requestRewardedAd() {
+  console.debug(`requestRewardedAd()`);
+  if (inPlayablesEnv) {
+    ytgame.ads.requestRewardedAd("21403813-2e22-4316-a8b2-7d4f52a6f6fb").then((isRewardEarned) => {
+      // Request succeeded (no guarantee an ad was shown).
+      // Handle reward being earned or not.
+      console.debug(`Reward earned: ${isRewardEarned}`);
+      // Proceed with the game.
+    }, (error) => {
+      // Handle ad request failure.
+      console.warn(error);
+      // Proceed with the game.
+    });
+  }
+}
+
 // ==================================================
 // End YouTube Playables integration section
 // ==================================================
@@ -353,6 +372,7 @@ const buttons = {};
 function createButtons() {
   buttons.primaryButton = { isPressed: false, shape: null, text: 'Loading...' };
   buttons.secondaryButton = { isPressed: false, shape: null, text: 'Loading...' };
+  buttons.tertiaryButton = { isPressed: false, shape: null, text: 'Loading...' };
 }
 
 /**
@@ -367,14 +387,14 @@ function drawButtons() {
     ctx.fillStyle = '#2975d9';
   }
   buttons.primaryButton.shape = new Path2D();
-  buttons.primaryButton.shape.rect(can.width / 2 - 50, can.height - 100, 100, 40);
+  buttons.primaryButton.shape.rect(can.width / 2 - 50, can.height - 150, 100, 40);
   ctx.fill(buttons.primaryButton.shape);
 
   ctx.font = '20px Georgia';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#000';
-  ctx.fillText(buttons.primaryButton.text, can.width / 2, can.height - 80);
+  ctx.fillText(buttons.primaryButton.text, can.width / 2, can.height - 130);
 
   if (buttons.secondaryButton.isPressed) {
     ctx.fillStyle = '#6089bf';
@@ -382,14 +402,29 @@ function drawButtons() {
     ctx.fillStyle = '#2975d9';
   }
   buttons.secondaryButton.shape = new Path2D();
-  buttons.secondaryButton.shape.rect(can.width / 2 - 75, can.height - 50, 150, 40);
+  buttons.secondaryButton.shape.rect(can.width / 2 - 75, can.height - 100, 150, 40);
   ctx.fill(buttons.secondaryButton.shape);
 
   ctx.font = '20px Georgia';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#000';
-  ctx.fillText(buttons.secondaryButton.text, can.width / 2, can.height - 30);
+  ctx.fillText(buttons.secondaryButton.text, can.width / 2, can.height - 80);
+
+  if (buttons.tertiaryButton.isPressed) {
+    ctx.fillStyle = '#6089bf';
+  } else {
+    ctx.fillStyle = '#2975d9';
+  }
+  buttons.tertiaryButton.shape = new Path2D();
+  buttons.tertiaryButton.shape.rect(can.width / 2 - 75, can.height - 50, 150, 40);
+  ctx.fill(buttons.tertiaryButton.shape);
+
+  ctx.font = '20px Georgia';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#000';
+  ctx.fillText(buttons.tertiaryButton.text, can.width / 2, can.height - 30);
 }
 
 /**
@@ -403,7 +438,7 @@ function drawCounter() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#fff';
-    ctx.fillText(`Counter: ${counter}`, can.width / 2, can.height - 120);
+    ctx.fillText(`Counter: ${counter}`, can.width / 2, can.height - 170);
   }
 }
 
@@ -437,6 +472,7 @@ function addInteractionHandling() {
   can.addEventListener('pointerdown', () => {
     buttons.primaryButton.wasPressed = buttons.primaryButton.isPressed = ctx.isPointInPath(buttons.primaryButton.shape, event.offsetX, event.offsetY);
     buttons.secondaryButton.wasPressed = buttons.secondaryButton.isPressed = ctx.isPointInPath(buttons.secondaryButton.shape, event.offsetX, event.offsetY);
+    buttons.tertiaryButton.wasPressed = buttons.tertiaryButton.isPressed = ctx.isPointInPath(buttons.tertiaryButton.shape, event.offsetX, event.offsetY);
   }, false);
 
   can.addEventListener('pointermove', () => {
@@ -445,6 +481,9 @@ function addInteractionHandling() {
     }
     if (buttons.secondaryButton.wasPressed) {
       buttons.secondaryButton.isPressed = ctx.isPointInPath(buttons.secondaryButton.shape, event.offsetX, event.offsetY);
+    }
+    if (buttons.tertiaryButton.wasPressed) {
+      buttons.tertiaryButton.isPressed = ctx.isPointInPath(buttons.tertiaryButton.shape, event.offsetX, event.offsetY);
     }
   }, false);
 
@@ -465,6 +504,13 @@ function addInteractionHandling() {
     }
 
     buttons.secondaryButton.wasPressed = buttons.secondaryButton.isPressed = false;
+
+    buttons.tertiaryButton.isPressed = ctx.isPointInPath(buttons.tertiaryButton.shape, event.offsetX, event.offsetY);
+    if (buttons.tertiaryButton.wasPressed && buttons.tertiaryButton.isPressed) {
+      requestRewardedAd();
+    }
+
+    buttons.tertiaryButton.wasPressed = buttons.tertiaryButton.isPressed = false;
 
   }, false);
 }
@@ -504,6 +550,7 @@ async function init() {
   can.addEventListener('click', firstClickHandler, false);
   buttons.primaryButton.text = 'Press!';
   buttons.secondaryButton.text = 'Interstitial ad';
+  buttons.tertiaryButton.text = 'Rewarded ad';
   addInteractionHandling();
 }
 
