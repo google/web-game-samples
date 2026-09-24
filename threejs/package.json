@@ -1,0 +1,19 @@
+{
+  "name": "threejs-playable-sample",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0",
+    "typescript": "^5.4.5",
+    "vite": "^6.4.3"
+  }
+}
