@@ -10,7 +10,7 @@ This template has been updated for:
 
 - [Phaser 3.86.0](https://github.com/phaserjs/phaser)
 - [YouTube Playables API v1](https://developers.google.com/youtube/gaming/playables/reference/sdk)
-- [Vite 5.4.8](https://github.com/vitejs/vite)
+- [Vite 6.3.6](https://github.com/vitejs/vite)
 
 ![screenshot](screenshot.png)
 
