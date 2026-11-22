@@ -1,27 +1,40 @@
-// The game: a spinning spiral, a counter and three buttons.
+// The game: a coil of beads, a counter and three buttons.
 //
-// PlayCanvas draws the spiral. The counter and the buttons are plain HTML on
+// PlayCanvas draws the 3D scene. The counter and the buttons are plain HTML on
 // top of the canvas, which gives touch, mouse, keyboard focus and screen
 // readers for free.
 
 import {
   type AppBase,
-  BLEND_NORMAL,
   Color,
   Entity,
-  PROJECTION_ORTHOGRAPHIC,
+  FOG_LINEAR,
+  math,
+  SHADOW_PCF5_32F,
   StandardMaterial,
-  type Texture,
+  TONEMAP_NEUTRAL,
 } from 'playcanvas';
-import { Spiral } from './spiral';
+import { createCoil } from './coil';
 import type { Strings } from './strings';
 import { reportError, requestInterstitialAd, requestRewardedAd, save, sendScore } from './youtube';
 
-/** The colors a rewarded ad unlocks, one at a time. */
-const SPIRAL_COLORS = ['#ff6600', '#ffd400', '#2ec4ff', '#ff4fa3', '#7ae04a'];
+/** The color schemes a rewarded ad unlocks, one at a time: [center, outer end]. */
+const PALETTES = [
+  ['#ffd23f', '#ff6600'],
+  ['#8ff3ff', '#1e6bff'],
+  ['#ffb3e6', '#d1006f'],
+  ['#d4ff7a', '#13a85a'],
+  ['#e4c8ff', '#7a3cff'],
+].map(([inner, outer]) => [new Color().fromString(inner), new Color().fromString(outer)]);
 
 /** The same ID every time for this kind of reward, with no user data in it. */
 const COLOR_REWARD_ID = 'spiral-color';
+
+/** The background, which the floor fades into in the distance. */
+const BACKGROUND = new Color().fromString('#0b0d12');
+
+/** How far the camera looks down, in degrees. */
+const CAMERA_PITCH = 35;
 
 /** What the player keeps between sessions. */
 interface Progress {
@@ -42,7 +55,7 @@ function parseProgress(data: string): Progress {
         progress.counter = saved.counter;
       }
       if (Number.isInteger(saved?.color) && saved.color >= 0) {
-        progress.color = saved.color % SPIRAL_COLORS.length;
+        progress.color = saved.color % PALETTES.length;
       }
     } catch (error) {
       // Start fresh, and let YouTube know.
@@ -56,7 +69,6 @@ export interface GameSetup {
   saveData: string;
   strings: Strings;
   language: string;
-  spiralTexture: Texture;
 }
 
 export function createGame(app: AppBase, setup: GameSetup) {
@@ -65,45 +77,54 @@ export function createGame(app: AppBase, setup: GameSetup) {
 
   // --- The scene ---------------------------------------------------------
 
-  // An orthographic camera where one world unit is one CSS pixel, so the
-  // layout below can place the spiral using the HTML elements' positions.
+  // A cool, dim fill, so the sides facing away from the light aren't black.
+  app.scene.ambientLight = new Color(0.16, 0.18, 0.24);
+  // The floor fades into the background in the distance.
+  app.scene.fog.type = FOG_LINEAR;
+  app.scene.fog.color = BACKGROUND;
+
   const camera = new Entity('camera');
   camera.addComponent('camera', {
-    projection: PROJECTION_ORTHOGRAPHIC,
-    clearColor: new Color(0, 0, 0),
-    nearClip: 0.1,
-    farClip: 10,
+    clearColor: BACKGROUND,
+    toneMapping: TONEMAP_NEUTRAL,
+    nearClip: 0.5,
+    farClip: 500,
   });
-  camera.setPosition(0, 0, 5);
+  camera.setEulerAngles(-CAMERA_PITCH, 0, 0);
   app.root.addChild(camera);
 
-  // The texture is white, so the material's emissive color tints it.
-  const material = new StandardMaterial();
-  material.useLighting = false;
-  material.useSkybox = false;
-  material.diffuse = new Color(0, 0, 0);
-  material.emissiveMap = setup.spiralTexture;
-  material.opacityMap = setup.spiralTexture;
-  material.opacityMapChannel = 'a';
-  material.blendType = BLEND_NORMAL;
-  material.depthWrite = false;
+  // One warm key light, high and to the side, with soft shadows.
+  const light = new Entity('light');
+  light.addComponent('light', {
+    type: 'directional',
+    color: new Color(1, 0.94, 0.85),
+    intensity: 1.4,
+    castShadows: true,
+    shadowType: SHADOW_PCF5_32F,
+    // Lighter than full strength, so the shadows read as soft rather than black.
+    shadowIntensity: 0.7,
+    shadowResolution: 2048,
+    shadowBias: 0.2,
+    normalOffsetBias: 0.05,
+  });
+  light.setEulerAngles(50, 35, 0);
+  app.root.addChild(light);
 
-  const setColor = (index: number) => {
-    material.emissive = new Color().fromString(SPIRAL_COLORS[index]);
-    material.update();
-  };
-  setColor(progress.color);
+  // A floor for the coil to stand on and cast its shadow onto.
+  const floorMaterial = new StandardMaterial();
+  floorMaterial.diffuse = new Color().fromString('#454c5c');
+  floorMaterial.useMetalness = true;
+  floorMaterial.metalness = 0;
+  floorMaterial.gloss = 0.3;
+  floorMaterial.update();
+  const floor = new Entity('floor');
+  floor.addComponent('render', { type: 'plane', material: floorMaterial, castShadows: false });
+  floor.setLocalScale(400, 1, 400);
+  app.root.addChild(floor);
 
-  // The spiral's root spins and scales; its child turns the plane primitive,
-  // which lies flat on XZ, to face the camera.
-  const spiral = new Entity('spiral');
-  const plane = new Entity('plane');
-  plane.addComponent('render', { type: 'plane', material });
-  plane.setLocalEulerAngles(90, 0, 0);
-  spiral.addChild(plane);
-  spiral.addComponent('script');
-  const spin = spiral.script!.create(Spiral)!;
-  app.root.addChild(spiral);
+  const coil = createCoil(app);
+  const setPalette = (index: number) => coil.setColors(PALETTES[index][0], PALETTES[index][1]);
+  setPalette(progress.color);
 
   // --- The interface -----------------------------------------------------
 
@@ -125,7 +146,7 @@ export function createGame(app: AppBase, setup: GameSetup) {
   pressButton.addEventListener('click', () => {
     progress.counter += 1;
     counterLabel.textContent = strings.counter(progress.counter);
-    spin.pop();
+    coil.pop();
     save(JSON.stringify(progress));
     // The counter only goes up, so the best score sent always matches the save.
     sendScore(progress.counter);
@@ -140,9 +161,9 @@ export function createGame(app: AppBase, setup: GameSetup) {
     const earned = await requestRewardedAd(COLOR_REWARD_ID);
     rewardedButton.disabled = false;
     if (earned) {
-      progress.color = (progress.color + 1) % SPIRAL_COLORS.length;
-      setColor(progress.color);
-      spin.pop();
+      progress.color = (progress.color + 1) % PALETTES.length;
+      setPalette(progress.color);
+      coil.pop();
       save(JSON.stringify(progress));
     }
   });
@@ -150,8 +171,9 @@ export function createGame(app: AppBase, setup: GameSetup) {
   // Keyboard play: the arrow keys move between the buttons, and Enter or
   // Space presses the focused one, as for any HTML button.
   const buttons = [pressButton, interstitialButton, rewardedButton];
+  const steps: Record<string, number> = { ArrowUp: -1, ArrowLeft: -1, ArrowDown: 1, ArrowRight: 1 };
   controls.addEventListener('keydown', (event) => {
-    const step = { ArrowUp: -1, ArrowLeft: -1, ArrowDown: 1, ArrowRight: 1 }[event.key];
+    const step = steps[event.key];
     const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
     if (step !== undefined && index !== -1) {
       event.preventDefault();
@@ -161,18 +183,61 @@ export function createGame(app: AppBase, setup: GameSetup) {
 
   // --- Layout ------------------------------------------------------------
 
-  // Fit the spiral between the language line and the controls, for any
-  // shape of screen YouTube gives the game.
+  // Frame the coil in the space between the language line and the controls,
+  // for any shape of screen YouTube gives the game. The camera only moves,
+  // never turns, so its axes are fixed.
+  const right = camera.right.clone();
+  const up = camera.up.clone();
+  const forward = camera.forward.clone();
+  const outline = coil.outline();
+  const reach = Math.max(...outline.map((point) => Math.hypot(point.x, point.z)));
+
   const layout = () => {
     const width = Math.max(1, app.graphicsDevice.canvas.clientWidth);
     const height = Math.max(1, app.graphicsDevice.canvas.clientHeight);
-    camera.camera!.orthoHeight = height / 2;
-
     const top = languageLabel.getBoundingClientRect().bottom + 8;
     const bottom = controls.getBoundingClientRect().top - 8;
-    const room = Math.max(0, bottom - top);
-    spin.size = Math.min(width, room) * 0.9;
-    spiral.setLocalPosition(0, height / 2 - (top + bottom) / 2, 0);
+
+    // The space's top and bottom on screen, from -1 (bottom) to 1 (top).
+    const high = 1 - (2 * top) / height;
+    const low = 1 - (2 * Math.max(bottom, top + 1)) / height;
+    const tan = Math.tan((camera.camera!.fov * math.DEG_TO_RAD) / 2);
+    const aspect = width / height;
+
+    // The camera sits `distance` back from the coil's center and `shift` down
+    // along its own up axis. A point at (x, y, z) in the camera's axes then
+    // lands on screen at x / (tan * aspect * (z + distance)) across and
+    // (y + shift) / (tan * (z + distance)) up. Keeping every point of the
+    // outline inside the space gives the smallest distance that works, and
+    // the range of shifts that work at that distance:
+    //   low * tan * distance + bottomSlack <= shift <= high * tan * distance + topSlack
+    let fitWidth = 0;
+    let topSlack = Infinity;
+    let bottomSlack = -Infinity;
+    for (const point of outline) {
+      const x = Math.abs(point.dot(right));
+      const y = point.dot(up);
+      const z = point.dot(forward);
+      fitWidth = Math.max(fitWidth, x / (tan * aspect) - z);
+      topSlack = Math.min(topSlack, high * tan * z - y);
+      bottomSlack = Math.max(bottomSlack, low * tan * z - y);
+    }
+    const fitHeight = (bottomSlack - topSlack) / ((high - low) * tan);
+    const distance = 1.05 * Math.max(fitWidth, fitHeight);
+    // The middle of that range centers the coil in the space.
+    const shift = (tan * distance * (high + low) + topSlack + bottomSlack) / 2;
+
+    camera.setPosition(
+      forward.x * -distance + up.x * -shift,
+      forward.y * -distance + up.y * -shift,
+      forward.z * -distance + up.z * -shift,
+    );
+
+    // Shadows only need to reach just past the coil.
+    light.light!.shadowDistance = distance + reach * 2;
+    // The floor behind the coil fades out, toward the top of the screen.
+    app.scene.fog.start = distance;
+    app.scene.fog.end = distance * 2.5;
   };
 
   hud.hidden = false;

@@ -14,14 +14,20 @@ body {
   height: 100%;
 }
 
-/* A bar that fills up while the game loads. */
+/* A black screen with a bar that fills up while the game loads. */
 #loading {
   position: fixed;
-  top: 50%;
-  left: 50%;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+#loading-track {
   width: min(60%, 240px);
   height: 6px;
-  transform: translate(-50%, -50%);
   background: #333;
 }
 
@@ -98,4 +104,18 @@ body {
 #controls button:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 2px;
+}
+
+/* On short screens, such as a phone on its side, put the buttons in a row. */
+@media (max-height: 480px) {
+  #controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  #counter {
+    width: 100%;
+    text-align: center;
+  }
 }

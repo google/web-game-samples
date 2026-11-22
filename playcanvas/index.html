@@ -8,12 +8,14 @@
     <script src="https://www.youtube.com/game_api/v1"></script>
   </head>
   <body>
-    <!-- PlayCanvas draws the spiral here. -->
+    <!-- PlayCanvas draws the 3D scene here. -->
     <canvas id="application"></canvas>
 
-    <!-- Shown until the game calls gameReady(). -->
-    <div id="loading" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100">
-      <div id="loading-bar"></div>
+    <!-- Covers everything until the game calls gameReady(). -->
+    <div id="loading">
+      <div id="loading-track" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100">
+        <div id="loading-bar"></div>
+      </div>
     </div>
 
     <!-- The interface: plain HTML over the canvas. -->

@@ -11,13 +11,12 @@ import {
   CameraComponentSystem,
   Entity,
   FILLMODE_FILL_WINDOW,
+  LightComponentSystem,
   RenderComponentSystem,
   RESOLUTION_AUTO,
   ScriptComponentSystem,
   SoundComponentSystem,
   SoundManager,
-  type Texture,
-  TextureHandler,
   WebglGraphicsDevice,
 } from 'playcanvas';
 import { createGame } from './game';
@@ -49,6 +48,7 @@ async function main() {
   const canvas = document.getElementById('application') as HTMLCanvasElement;
   const loadingBar = document.getElementById('loading-bar')!;
   const loading = document.getElementById('loading')!;
+  const loadingTrack = document.getElementById('loading-track')!;
   const hud = document.getElementById('hud')!;
 
   // WebGL 2 runs everywhere YouTube does. createGraphicsDevice() can pick
@@ -63,11 +63,12 @@ async function main() {
   options.soundManager = new SoundManager();
   options.componentSystems = [
     CameraComponentSystem,
+    LightComponentSystem,
     RenderComponentSystem,
     ScriptComponentSystem,
     SoundComponentSystem,
   ];
-  options.resourceHandlers = [TextureHandler, AudioHandler];
+  options.resourceHandlers = [AudioHandler];
 
   const app = new AppBase(canvas);
   app.init(options);
@@ -84,31 +85,27 @@ async function main() {
   app.start();
   sendFirstFrameReady(app);
 
-  // Load the save, the language and the spiral together, filling the bar as
-  // each one finishes.
-  const steps = 3;
+  // Load the save and the language together, filling the bar as each one
+  // finishes. Load your game's assets here too.
+  const steps = 2;
   let done = 0;
   const track = <T>(task: Promise<T>) =>
     task.then((result) => {
       done += 1;
       const percent = Math.round((done / steps) * 100);
       loadingBar.style.width = `${percent}%`;
-      loading.setAttribute('aria-valuenow', String(percent));
+      loadingTrack.setAttribute('aria-valuenow', String(percent));
       return result;
     });
-  const spiralTexture = new Asset('spiral', 'texture', { url: 'spiral.png' }, { srgb: true });
   const [saveData, language] = await Promise.all([
     track(loadSave()),
     track(getLanguage()),
-    track(loadAssets(app, [spiralTexture])),
   ]);
 
-  createGame(app, {
-    saveData,
-    strings: stringsFor(language),
-    language,
-    spiralTexture: spiralTexture.resource as Texture,
-  });
+  // Build the game behind the loading screen, and only take the loading screen
+  // away once the game's first frame is drawn (which compiles its shaders).
+  createGame(app, { saveData, strings: stringsFor(language), language });
+  await new Promise((resolve) => app.once('frameend', resolve));
   loading.remove();
   gameReady();
 

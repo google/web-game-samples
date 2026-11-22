@@ -4,9 +4,10 @@ A starter project for building [YouTube Playables](https://developers.google.com
 with the [PlayCanvas Engine](https://github.com/playcanvas/engine), using
 TypeScript and Vite.
 
-The game is kept tiny on purpose: it is the same one as the
-[plain HTML/JS/CSS sample](../plain-html-js-css), a spinning spiral, a counter
-and two ad buttons. What matters is the code around it, which does what the
+The game is kept small on purpose. It is the one from the
+[plain HTML/JS/CSS sample](../plain-html-js-css), in 3D: a coil of glossy beads
+in place of the flat spiral, a counter and two ad buttons. What matters is the
+code around it, which does what the
 [Playables SDK](https://developers.google.com/youtube/gaming/playables/reference/sdk)
 asks of a game, the PlayCanvas way.
 
@@ -14,11 +15,12 @@ asks of a game, the PlayCanvas way.
 
 ## What's in the game
 
-- **Press!** adds one to the counter and makes the spiral pop. The counter is
-  saved to YouTube's cloud save and sent to YouTube as the player's score.
+- **Press!** adds one to the counter. The beads hop one after another, from
+  the center out, and the coil spins faster for a moment. The counter is saved
+  to YouTube's cloud save and sent to YouTube as the player's score.
 - **Interstitial ad** asks YouTube for an ad.
 - **Rewarded ad: new color** asks for a rewarded ad. If the player earns the
-  reward, the spiral changes color, and the color is saved too.
+  reward, the coil changes colors, and the colors are saved too.
 - The game follows YouTube's pause, resume and mute, and uses the player's
   YouTube language (English, French and Spanish are included).
 - It works with touch, a mouse or a keyboard.
@@ -70,27 +72,41 @@ in your browser console first.
 | File | Contents |
 |------|----------|
 | `index.html` | Loads the Playables SDK first, then the game. Holds the loading bar and the interface |
-| `src/main.ts` | Start-up: creates the app, shows the loading screen, loads the save and the assets, starts the game |
+| `src/main.ts` | Start-up: creates the app, shows the loading screen, loads the save, starts the game |
 | `src/youtube.ts` | Every call to the Playables SDK |
-| `src/game.ts` | The scene, the interface and the save format |
-| `src/spiral.ts` | A PlayCanvas `Script` that spins the spiral and makes it pop |
+| `src/game.ts` | The scene, the camera framing, the interface and the save format |
+| `src/coil.ts` | Builds the coil, and a PlayCanvas `Script` that spins it and makes the beads hop |
 | `src/strings.ts` | The game's text in English, French and Spanish |
-| `src/style.css` | The loading bar and the interface |
+| `src/style.css` | The loading screen and the interface |
 | `src/types/sdk.d.ts` | Types for the `ytgame` global, from the [PixiJS sample](../pixijs) |
-| `public/` | The spiral and the music |
+| `public/` | The music |
 | `vite.config.ts` | Relative paths for the build, and YouTube's security policy for the local servers |
 
 ## How it is built
 
-PlayCanvas draws the spiral: a plane with a white texture, tinted by its
-material, seen through an orthographic camera. The counter and the buttons are
-plain HTML over the canvas, which gives touch, mouse, keyboard focus and screen
-readers for free.
+PlayCanvas draws the 3D scene:
 
-The app is an `AppBase` with only the component systems and resource handlers
-the game uses (camera, render, script and sound; textures and audio), and a
+- **The coil**: 57 beads made with the engine's sphere primitive, each with its
+  own `StandardMaterial` for the color gradient. A `Script` on the coil spins
+  it, runs a gentle wave along it, and makes the beads hop after a press.
+- **The lighting**: one warm directional key light with soft shadows, a cool
+  ambient fill, neutral tone mapping, and fog that fades the floor into the
+  background.
+- **The camera** looks down at the coil from a fixed angle. `layout()` in
+  `src/game.ts` moves it so the coil fits between the language line and the
+  controls on any shape of screen, whichever way it has turned and however
+  high the beads hop.
+
+There are no textures, models or environment maps, so the code is all there is
+to download before the game starts.
+
+The counter and the buttons are plain HTML over the canvas, which gives touch,
+mouse, keyboard focus and screen readers for free.
+
+The app is an `AppBase` with only the parts the game uses: the camera, light,
+render, script and sound component systems, the audio resource handler, and a
 WebGL 2 device. That keeps the bundle to about half the size of the full
-`Application`. Add systems and handlers to `src/main.ts` as your game needs
+`Application`. Add systems and handlers in `src/main.ts` as your game needs
 them.
 
 ## How the integration works
@@ -117,17 +133,19 @@ YouTube shows a spinner until the game calls `firstFrameReady()`, which must
 come while a loading screen is showing. Then it waits for `gameReady()`, which
 must only come once the game can be played.
 
-The page opens on a loading bar. `src/main.ts` starts the app straight away
-and sends `firstFrameReady()` after the app's first frame:
+The page opens on a loading screen with a progress bar. `src/main.ts` starts
+the app straight away and sends `firstFrameReady()` after the app's first
+frame:
 
 ```ts
 app.start();
 app.once('frameend', firstFrameReady);
 ```
 
-It then loads the save, the language and the spiral texture, filling the bar
-as each one finishes. When they are all in, it builds the game, removes the
-loading bar and calls `gameReady()`.
+It then loads the save and the language, filling the bar as each one
+finishes; load your game's assets at the same point. It builds the game behind
+the loading screen and waits for the game's first frame, which compiles its
+shaders. Only then does it remove the loading screen and call `gameReady()`.
 
 The music isn't needed to start playing, so it only loads after `gameReady()`.
 That keeps the initial download small and the start fast.
@@ -230,7 +248,8 @@ the arrow keys move between the buttons, and Enter or Space presses the focused
 one.
 
 The buttons are 48 pixels high with 8 pixels between them, following YouTube's
-recommended touch target size.
+recommended touch target size. On short screens, such as a phone on its side,
+they sit in a row to leave the coil more room.
 
 ## Building for YouTube
 
@@ -242,10 +261,10 @@ Keep an eye on the
 [size limits](https://developers.google.com/youtube/gaming/playables/certification/requirements_stability)
 as your game grows:
 
-- **Initial download**: about 1.1 MiB for this template (about 320 KiB
+- **Initial download**: about 1 MiB for this template (about 270 KiB
   compressed), out of 30 MiB allowed (15 MiB recommended). The music isn't
   part of it, as it loads after `gameReady()`.
-- **File size**: the JavaScript bundle is about 1,060 KiB (about 270 KiB
+- **File size**: the JavaScript bundle is about 1,065 KiB (about 270 KiB
   compressed), almost all of it the engine. That's over the recommended
   512 KiB per file, but far below the 30 MiB limit, and it's why
   `npm run build` warns about a chunk larger than 500 kB. The other files are
@@ -255,8 +274,6 @@ as your game grows:
 
 ## Assets
 
-- `spiral.png` is the spiral from the plain HTML/JS/CSS sample, made in
-  Inkscape, drawn white at 1024 × 1024 so the game can tint it.
 - `moonlight.mp3` is the first movement of Beethoven's "Moonlight" Sonata, in
   the public domain via
   [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Ludwig_van_Beethoven_-_sonata_no._14_in_c_sharp_minor_%27moonlight%27,_op._27_no._2_-_i._adagio_sostenuto.ogg),
