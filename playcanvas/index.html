@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>PlayCanvas YouTube Playables Template</title>
+    <!-- Load the YouTube Playables SDK as the first script on the page. -->
+    <script src="https://www.youtube.com/game_api/v1"></script>
+  </head>
+  <body>
+    <!-- PlayCanvas draws the 3D scene here. -->
+    <canvas id="application"></canvas>
+
+    <!-- Covers everything until the game calls gameReady(). -->
+    <div id="loading">
+      <div id="loading-track" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100">
+        <div id="loading-bar"></div>
+      </div>
+    </div>
+
+    <!-- The interface: plain HTML over the canvas. -->
+    <div id="hud" hidden>
+      <p id="language"></p>
+      <div id="controls">
+        <p id="counter" aria-live="polite"></p>
+        <button id="press" type="button"></button>
+        <button id="interstitial" type="button"></button>
+        <button id="rewarded" type="button"></button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

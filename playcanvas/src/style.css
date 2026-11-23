@@ -1,0 +1,121 @@
+/* The game fills the page: no margins, no scrollbars. */
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+#application {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* A black screen with a bar that fills up while the game loads. */
+#loading {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+#loading-track {
+  width: min(60%, 240px);
+  height: 6px;
+  background: #333;
+}
+
+#loading-bar {
+  width: 0;
+  height: 100%;
+  background: #2975d9;
+}
+
+/* The interface sits over the canvas; only its buttons take input. */
+#hud {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px 16px;
+  box-sizing: border-box;
+  pointer-events: none;
+  font-family: Georgia, serif;
+  color: #fff;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#hud[hidden] {
+  display: none;
+}
+
+#hud p {
+  margin: 0;
+}
+
+#language {
+  font-size: 14px;
+}
+
+#controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* YouTube recommends 48 x 48 touch targets with 8 between them. */
+  gap: 8px;
+}
+
+#counter {
+  font-size: 20px;
+}
+
+#controls button {
+  min-width: 160px;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 4px;
+  background: #2975d9;
+  color: #000;
+  font: 20px Georgia, serif;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#controls button:hover,
+#controls button:active {
+  background: #6089bf;
+}
+
+#controls button:disabled {
+  opacity: 0.6;
+}
+
+#controls button:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+/* On short screens, such as a phone on its side, put the buttons in a row. */
+@media (max-height: 480px) {
+  #controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  #counter {
+    width: 100%;
+    text-align: center;
+  }
+}
