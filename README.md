@@ -12,6 +12,18 @@ YouTube Playables SDK is a web SDK for connecting web games with the YouTube env
 
 For additional information, visit the [YouTube Playables developer documentation](https://developers.google.com/youtube/gaming/playables).
 
+## Samples
+
+This repository includes samples for different web game stacks:
+
+| Sample | Stack | Notes |
+| --- | --- | --- |
+| [`plain-html-js-css`](plain-html-js-css) | HTML, JavaScript, and CSS | Minimal integration with no build step or dependencies. |
+| [`phaser`](phaser) | Phaser 3 and Vite | Complete Basketball Shoot Out sample game with a YouTube Playables helper wrapper. |
+| [`pixijs`](pixijs) | PixiJS, TypeScript, and Vite | Starter template with asset loading, sound handling, save data, and Playables lifecycle examples. |
+| [`Unity`](Unity) | Unity WebGL | Unity packages for the Playables wrapper and sample content. |
+| [`Godot`](Godot) | Godot Web export | Godot wrapper packages with and without sample content. |
+
 ## Community
 
 Join the [YouTube Discord server](https://discord.gg/eEFBtMswKT) to discuss with our Playables community.
