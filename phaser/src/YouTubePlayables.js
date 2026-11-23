@@ -330,7 +330,7 @@ export const YouTubePlayables = {
 
     unsetAudioChangeCallback: function ()
     {
-        if (this.__unsetAudioCallback)
+        if (this._unsetAudioCallback)
         {
             this._unsetAudioCallback();
 
